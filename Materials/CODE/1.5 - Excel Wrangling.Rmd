@@ -1,0 +1,80 @@
+---
+title: "1.5: Excel Wrangling"
+author: "Alex Smithgall"
+date: "2024-03-25"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+
+```{r}
+#load in packages
+library(readxl)
+library(dplyr)
+library(lubridate)
+```
+
+
+```{r}
+#read in excel spreadsheets (EDIT FILEPATHS)
+gas <- read_xls("/Users/alexsmithgall/downloads/EMM_EPM0_PTE_NUS_DPGm.xls", sheet = 2)
+unemploy <- read_xls("/Users/alexsmithgall/downloads/UNRATE.xls")
+cpi <- read_xls("/Users/alexsmithgall/downloads/CPIAUCSL-2.xls")
+
+#preliminary cleaning: subset rows, rename column names, round values, make the numeric columns numeric
+
+cpi <- cpi[-c(1:553),] %>% rename(Date = "FRED Graph Observations", "Consumer Price Index"	= ...2)
+cpi$"Consumer Price Index" <- as.numeric(as.character(cpi$"Consumer Price Index"))
+cpi$"Consumer Price Index" <- round(cpi$"Consumer Price Index", digits = 1)
+
+unemploy <- unemploy[-c(1:553),] %>% rename(Date = "FRED Graph Observations", "Unemployment Rate"	= ...2)
+unemploy$"Unemployment Rate" <- as.numeric(as.character(unemploy$"Unemployment Rate"))
+
+gas <- gas[-c(1:2),] %>% rename(Date = "Back to Contents", "U.S. All Grades All Formulations Retail Gasoline Prices (Dollars per Gallon)" = "Data 1: U.S. All Grades All Formulations Retail Gasoline Prices (Dollars per Gallon)")
+gas$"U.S. All Grades All Formulations Retail Gasoline Prices (Dollars per Gallon)" <- as.numeric(as.character(gas$"U.S. All Grades All Formulations Retail Gasoline Prices (Dollars per Gallon)"))
+```
+
+```{r}
+#creating a sequence of dates for joining
+dates <- seq(ymd("1993-04-01"), ymd("2024-02-01"), by = "months")
+formatted_dates <- format(dates, "%b-%Y")
+
+#load the formatted dates into each dataframe
+gas$Date <- formatted_dates
+cpi$Date <- formatted_dates
+unemploy$Date <- formatted_dates
+```
+
+```{r}
+#combine the dataframes with inner joins
+stuff <- inner_join(gas, cpi, by = "Date") %>% inner_join(unemploy, by = "Date")
+
+#write to csv
+write.csv(stuff, "stuff.csv")
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

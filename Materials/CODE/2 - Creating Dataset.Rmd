@@ -1,0 +1,75 @@
+---
+title: "primary data wrangling"
+author: "Samuel Rea"
+date: "`r Sys.Date()`"
+output: html_document
+---
+loading in the necessary packages
+```{r, message = FALSE}
+library(xlsx)
+library(dplyr)
+library(lubridate)
+library('glmnet')
+```
+
+now load in the csv files that contain the data
+```{r}
+data<-read.csv("stuff.csv")
+etf1<-read.csv("energy_etf_1_monthly_data_1993_2023_Final.csv")
+etf2<-read.csv("energy_etf_2_monthly_data_1993_2023_Final.csv")
+crude_oil<-read.csv("crude_oil_monthly_data_1993_2023_Final.csv")
+sandp<-read.csv("s&p_500_monthly_data_1993_2023_Final.csv")
+class_of_column <- class(sandp$Date)
+class_of_column2 <- class(etf1$Date)
+class_of_column3 <- class(data$Date)
+```
+
+now inner join by the date
+```{r}
+data$date <- parse_date_time(data$Date, orders = "my")
+etf1$date <- ymd(etf1$Date)
+etf2$date <- ymd(etf2$Date)
+crude_oil$date <- ymd(crude_oil$Date)
+sandp$date <- ymd(sandp$Date)
+# Remove unnecessary columns
+data <- select(data, -Date)
+etf1 <- select(etf1, -Date)
+etf2 <- select(etf2, -Date)
+crude_oil <- select(crude_oil, -Date)
+sandp <- select(sandp, -Date)
+
+#joining them together
+result <- inner_join(data, etf1, by = "date")
+result <- inner_join(result, etf2, by = "date")
+result <- inner_join(result, crude_oil, by = "date")
+final <- inner_join(result, sandp, by = "date")
+```
+
+```{r}
+final <- final %>% rename(Gas.Price = U.S..All.Grades.All.Formulations.Retail.Gasoline.Prices..Dollars.per.Gallon., Etf1.High = High.x, Eft1.Low = Low.x, Etf1.Close = Close.x, Etf1.Adj.Close = Adj.Close.x, Etf1.Volume = Volume.x, Etf2.High = High.y, Eft2.Low = Low.y, Etf2.Close = Close.y, Etf2.Adj.Close = Adj.Close.y, Etf2.Volume = Volume.y, Crude.High = High.x.x, Crude.Low = Low.x.x, Crude.Close = Close.x.x, Crude.Adj.Close = Adj.Close.x.x, Crude.Volume = Volume.x.x, SP.High = High.y.y, SP.Low = Low.y.y, SP.Close = Close.y.y, SP.Adj.Close = Adj.Close.y.y, SP.Volume = Volume.y.y, Etf1.Open = Open.x, Etf2.Open = Open.y, Crude.Open = Open.x.x, SP.Open = Open.y.y)
+```
+
+```{r}
+write.csv(final, "final_data.csv")
+```
+
+
+```{r}
+final
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
